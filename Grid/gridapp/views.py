@@ -14,12 +14,7 @@ import sys
 def run_item(password,username,server,port):
     command = f'sshpass -p {password} ssh {username}@{server} -p {port} python < script.py'
     process = subprocess.Popen(f'{command}',shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-    #result = ssh.stdout.readlines()
-    #if result == []:
-    #   error = ssh.stderr.readlines()
-    #	print(sys.stderr, "ERROR: %s" % error)
-    #else:
-    #   print(result)
+   
     (out,err) = process.communicate()
     if process.returncode == 0:
         sout = out.decode("utf-8")
@@ -43,33 +38,34 @@ class SubmitOneRequest(View):
     def post(self, request):
         data = json.loads(request.body)
         server = data['server']
-        username = data['username']
-        password = data['password']
-        port = data['port']
+        #username = data['username']
+        #password = data['password']
+        #port = data['port']
         try:
-            obj = Response.objects.get(Server=server, Username=username, Password=password, Port=port)
-            dict = run_item(password, username, server, port)
+            obj = Response.objects.get(AssetName=server)
+            dict = run_item(obj.Password, obj.Username, obj.Server, obj.Port)
             #TODO: check if error
             if dict['Status']=='UP':
-                Assetname = dict['Asset_name'],
+                #Assetname = dict['Asset_name'],
                 ip = dict['IP']
                 mac = dict['MAC']
                 os = dict['OS']
                 hostname = dict['Hostname']
-                obj.AssetName = Assetname
+                #obj.AssetName = Assetname
                 obj.IP = ip
                 obj.MAC = mac
                 obj.OS = os
                 obj.Hostname = hostname
-                obj.Status = True
+                obj.Status = dict['Status']
                 obj.LastUpdated = datetime.now()
-                obj.save(update_fields=['AssetName', 'IP', 'MAC', 'OS', 'Hostname', 'Status', 'LastUpdated'])
+                obj.save(update_fields=['IP', 'MAC', 'OS', 'Hostname', 'Status', 'LastUpdated'])
             else:
-                obj.Status = False
+                obj.Status = dict['Status']
                 obj.LastUpdated = datetime.now()
                 obj.save(update_fields=['Status', 'LastUpdated'])
         except Exception as e:
             print(e)
+            return HttpResponse("Yellubhai tu galat search karra")
         return HttpResponse("Success")
 
 @method_decorator(csrf_exempt, name='dispatch')
@@ -80,7 +76,7 @@ class SubmitAllRequest(View):
         all_items = Response.objects.all()
         for item in all_items:
             print(f"Asset {count}\n")
-            if item.Port is not None:
+            if item.Port is None:
                 port = 22
             else:
                 port = item.Port
@@ -92,19 +88,19 @@ class SubmitAllRequest(View):
             #TODO: check if error
             print(dict)
             if dict['Status']=='UP':
-                Assetname = dict['Asset_name'],
+                #Assetname = dict['Asset_name'],
                 ip = dict['IP']
                 mac = dict['MAC']
                 os = dict['OS']
                 hostname = dict['Hostname']
-                obj.AssetName = Assetname
+                #obj.AssetName = Assetname
                 obj.IP = ip
                 obj.MAC = mac
                 obj.OS = os
                 obj.Hostname = hostname
                 obj.Status = dict['Status']
                 obj.LastUpdated = datetime.now()
-                obj.save(update_fileds=['AssetName', 'IP', 'MAC', 'OS', 'Hostname', 'Status', 'LastUpdated'])
+                obj.save(update_fields=['IP', 'MAC', 'OS', 'Hostname', 'Status', 'LastUpdated'])
             else:
                 obj.Status = dict['Status']
                 obj.LastUpdated = datetime.now()
@@ -121,7 +117,7 @@ class CreateResponse(View):
         password = data['password']
         port = data['port']
         try:
-            Response.objects.create(Server=server, Username=username, Password=password, Port=port)
-            return HttpResponse({"Status":"success"})
+            Response.objects.create(AssetName=server,Server=server, Username=username, Password=password, Port=port)
+            return HttpResponse({"Yelluru Pilega"})
         except:
-            return HttpResponse({"Status":"failed"})
+            return HttpResponse({"Muku Pilega"})
