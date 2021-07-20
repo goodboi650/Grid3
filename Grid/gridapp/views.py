@@ -121,3 +121,31 @@ class CreateResponse(View):
             return HttpResponse({"Yelluru Pilega"})
         except:
             return HttpResponse({"Muku Pilega"})
+
+@method_decorator(csrf_exempt, name='dispatch')
+class DeleteResponse(View):
+    def post(self, request):
+        data = json.loads(request.body)
+        server = data['asset_name']
+        Response.objects.filter(AssetName=server).delete()
+        
+@method_decorator(csrf_exempt, name='dispatch')
+class SearchResponse(View):
+    def get(self, request):
+        data = json.loads(request.body)
+        if 'asset_name' in data:
+            items = Response.objects.filter(AssetName=data['asset_name']).get()
+            dict = {}
+            for x in items:
+                properties = {'OS':x.OS, 'Hostname':x.Hostname, 'MAC':x.MAC, 'IP':x.IP, 'Status':x.Status, 'Last Updated':x.LastUpdated}
+                dict[x.AssetName] = properties
+            jsr = json.loads(dict)
+            return JsonResponse(jsr)
+        elif 'OS' in data:
+            items = Response.objects.filter(OS=data['OS']).get()
+            dict = {}
+            for x in items:
+                properties = {'OS':x.OS, 'Hostname':x.Hostname, 'MAC':x.MAC, 'IP':x.IP, 'Status':x.Status, 'Last Updated':x.LastUpdated}
+                dict[x.AssetName] = properties
+            jsr = json.loads(dict)
+            return JsonResponse(jsr)
