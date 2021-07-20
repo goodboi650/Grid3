@@ -13,5 +13,5 @@ class Response(models.Model):
     MAC = models.CharField(max_length=100)
     OS = models.CharField(max_length=100)
     #Domaininfo
-    Status = models.BooleanField
-    LastUpdated = models.TimeField
+    Status = models.CharField(max_length=100, null=True)
+    LastUpdated = models.TimeField(null=True)

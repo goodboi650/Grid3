@@ -27,13 +27,14 @@ def run_item(password,username,server,port):
         d["Asset_Name"] = server
         d["Status"] = "UP"
         print(json.dumps(d))
-        return json.dumps(d)
+        return d
     else:
         errd = {'Asset_Name':server,'IP':'','MAC':'','Hostname':'','OS':''}
         serr = err.decode("utf-8")
         index = serr.rfind(":")
         errd['Status'] = serr[index+2:-2]
         print(json.dumps(errd))
+        return errd
 
     print('\n')
 
@@ -42,7 +43,7 @@ class SubmitOneRequest(View):
     def post(self, request):
         data = json.loads(request.body)
         server = data['server']
-        username = data['ssername']
+        username = data['username']
         password = data['password']
         port = data['port']
         try:
@@ -62,15 +63,15 @@ class SubmitOneRequest(View):
                 obj.Hostname = hostname
                 obj.Status = True
                 obj.LastUpdated = datetime.now()
-                obj.updatefields(['AssetName', 'IP', 'MAC', 'OS', 'Hostname', 'Status', 'LastUpdated'])
+                obj.save(update_fields=['AssetName', 'IP', 'MAC', 'OS', 'Hostname', 'Status', 'LastUpdated'])
             else:
                 obj.Status = False
                 obj.LastUpdated = datetime.now()
-                obj.updatefields(['Status', 'LastUpdated'])
+                obj.save(update_fields=['Status', 'LastUpdated'])
         except Exception as e:
             print(e)
-        return
-        
+        return HttpResponse("Success")
+
 @method_decorator(csrf_exempt, name='dispatch')
 class SubmitAllRequest(View):
     def post(self, request):
@@ -79,34 +80,38 @@ class SubmitAllRequest(View):
         all_items = Response.objects.all()
         for item in all_items:
             print(f"Asset {count}\n")
-            if item['Port'] is not None:
+            if item.Port is not None:
                 port = 22
             else:
-                port = item['Port']
-            server = item['Server']
-            username = item['Username']
-            password = item['Password']
+                port = item.Port
+            server = item.Server
+            username = item.Username
+            password = item.Password
+            obj = Response.objects.get(Username=username, Password=password)
             dict = run_item(password, username, server, port)
             #TODO: check if error
+            print(dict)
             if dict['Status']=='UP':
                 Assetname = dict['Asset_name'],
                 ip = dict['IP']
                 mac = dict['MAC']
                 os = dict['OS']
                 hostname = dict['Hostname']
-                item.AssetName = Assetname
-                item.IP = ip
-                item.MAC = mac
-                item.OS = os
-                item.Hostname = hostname
-                item.Status = True
-                item.LastUpdated = datetime.now()
-                item.updatefields(['AssetName', 'IP', 'MAC', 'OS', 'Hostname', 'Status', 'LastUpdated'])
+                obj.AssetName = Assetname
+                obj.IP = ip
+                obj.MAC = mac
+                obj.OS = os
+                obj.Hostname = hostname
+                obj.Status = dict['Status']
+                obj.LastUpdated = datetime.now()
+                obj.save(update_fileds=['AssetName', 'IP', 'MAC', 'OS', 'Hostname', 'Status', 'LastUpdated'])
             else:
-                item.Status = False
-                item.LastUpdated = datetime.now()
-                item.updatefields(['Status', 'LastUpdated'])
+                obj.Status = dict['Status']
+                obj.LastUpdated = datetime.now()
+                obj.save(update_fields=['Status', 'LastUpdated'])
             count=count+1
+        return HttpResponse("Success")
+        
 @method_decorator(csrf_exempt, name='dispatch')
 class CreateResponse(View):
     def post(self, request):
