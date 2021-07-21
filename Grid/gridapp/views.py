@@ -15,13 +15,23 @@ import sys
 def user(request):
     return render(request, 'gridapp/user.html')
 
-
 def gridadmin(request):
     return render(request, 'gridapp/gridadmin.html')
 
 
 def ipscreen(request):
     return render(request, 'gridapp/ipscreen.html')
+
+def singlescan(request):
+    return render(request, 'gridapp/singlescan.html')
+
+def add_asset(request):
+    return render(request,'gridapp/add_asset.html')
+
+def delete_asset(request):
+    return render(request, 'gridapp/delete_asset.html')
+
+
 
 
 def run_item(password, username, server, port):
@@ -75,8 +85,8 @@ def run_item(password, username, server, port):
 @method_decorator(csrf_exempt, name='dispatch')
 class SubmitOneRequest(View):
     def post(self, request):
-        data = json.loads(request.body)
-        server = data['server']
+        server = request.POST.get("server")
+        
         #username = data['username']
         #password = data['password']
         #port = data['port']
@@ -107,12 +117,13 @@ class SubmitOneRequest(View):
         except Exception as e:
             print(e)
             return HttpResponse("Yellubhai tu galat search karra")
-        return HttpResponse("Success")
+        
+        return JsonResponse(dict)
 
 
 @method_decorator(csrf_exempt, name='dispatch')
 class SubmitAllRequest(View):
-    def post(self, request):
+    def get(self, request):
         lines = []
         count = 1
         all_items = Response.objects.all()
@@ -155,11 +166,16 @@ class SubmitAllRequest(View):
 @method_decorator(csrf_exempt, name='dispatch')
 class CreateResponse(View):
     def post(self, request):
-        data = json.loads(request.body)
-        server = data['server']
-        username = data['username']
-        password = data['password']
-        port = data['port']
+        #data = json.loads(request.body)
+        #server = data['server']
+        #username = data['username']
+        #password = data['password']
+        #port = data['port']
+        server = request.POST.get("server")
+        username = request.POST.get("username")
+        password = request.POST.get("password")
+        port = request.POST.get("port")
+
         try:
             Response.objects.create(
                 AssetName=server, Server=server, Username=username, Password=password, Port=port)
@@ -171,14 +187,28 @@ class CreateResponse(View):
 @method_decorator(csrf_exempt, name='dispatch')
 class DeleteResponse(View):
     def post(self, request):
-        data = json.loads(request.body)
-        server = data['asset_name']
+        #data = json.loads(request.body)
+        server = request.POST.get("server")
         Response.objects.filter(AssetName=server).delete()
         return HttpResponse("Success")
 
 
 @method_decorator(csrf_exempt, name='dispatch')
 class SearchResponse(View):
+    def get(self,request):
+        item = Response.objects.all()
+        dict = {}
+        for x in item:
+            if x.AssetName == "":
+                continue
+            properties = {'OS': x.OS, 'Hostname': x.Hostname, 'MAC': x.MAC,
+                            'IP': x.IP, 'Status': x.Status, 'Last Updated': str(x.LastUpdated)}
+            dict[x.AssetName] = properties
+        # print(type(dict))
+        #jsr = json.loads(dict)
+        # print(type(dict))
+        return JsonResponse(dict)
+
     def post(self, request):
         try:
             #print("Hello bocha")
