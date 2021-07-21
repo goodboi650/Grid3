@@ -16,10 +16,6 @@ def user(request):
     return render(request, 'gridapp/user.html')
 
 
-def login(request):
-    return render(request, 'gridapp/login.html')
-
-
 def gridadmin(request):
     return render(request, 'gridapp/gridadmin.html')
 
@@ -33,42 +29,44 @@ def run_item(password, username, server, port):
     process = subprocess.Popen(
         f'{command}', shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
 
-    d={}
+    d = {}
     (out, err) = process.communicate()
     if process.returncode == 0:
         sout = out.decode("utf-8")
         d = json.loads(sout)
         d["Asset_Name"] = server
         d["Status"] = "UP"
-        #print(json.dumps(d))
-        #return d
+        # print(json.dumps(d))
+        # return d
     else:
         d = {'Asset_Name': server, 'IP': '',
-                'MAC': '', 'Hostname': '', 'OS': ''}
+             'MAC': '', 'Hostname': '', 'OS': ''}
         serr = err.decode("utf-8")
         index = serr.rfind(":")
         d['Status'] = serr[index+2:-2]
-        #print(json.dumps(errd))
-        #return errd
+        # print(json.dumps(errd))
+        # return errd
 
     if d['Status'] != 'UP':
         command = f'sshpass -p {password} ssh {username}@{server} -p {port} python < script.py'
-        process = subprocess.Popen(f'{command}',shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-        (out,err) = process.communicate()
+        process = subprocess.Popen(
+            f'{command}', shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        (out, err) = process.communicate()
         if process.returncode == 0:
-                sout = out.decode("utf-8")
-                d = json.loads(sout)
-                d['Asset_Name'] = server
-                d['Status'] = "UP"
-                #print(json.dumps(d))
+            sout = out.decode("utf-8")
+            d = json.loads(sout)
+            d['Asset_Name'] = server
+            d['Status'] = "UP"
+            # print(json.dumps(d))
         else:
-                d = {'Asset_Name':server,'IP':'','MAC':'','Hostname':'','OS':''}
-                serr = err.decode("utf-8")
-                index = serr.rfind(":")
-                d['Status'] = serr[index+2:-2]
-                #print(json.dumps(d))
-        
-    #print(json.dumps(d))
+            d = {'Asset_Name': server, 'IP': '',
+                 'MAC': '', 'Hostname': '', 'OS': ''}
+            serr = err.decode("utf-8")
+            index = serr.rfind(":")
+            d['Status'] = serr[index+2:-2]
+            # print(json.dumps(d))
+
+    # print(json.dumps(d))
     return d
 
     print('\n')
@@ -130,7 +128,7 @@ class SubmitAllRequest(View):
             #obj = Response.objects.get(AssetName=server,Username=username, Password=password)
             dict = run_item(password, username, server, port)
             # TODO: check if error
-            print(dict)       
+            print(dict)
             if dict['Status'] == 'UP':
                 #Assetname = dict['Asset_name'],
                 ip = dict['IP']
@@ -145,7 +143,7 @@ class SubmitAllRequest(View):
                 item.Status = dict['Status']
                 item.LastUpdated = datetime.now()
                 item.save(update_fields=['IP', 'MAC', 'OS',
-                         'Hostname', 'Status', 'LastUpdated'])
+                                         'Hostname', 'Status', 'LastUpdated'])
             else:
                 item.Status = dict['Status']
                 item.LastUpdated = datetime.now()
@@ -185,14 +183,14 @@ class SearchResponse(View):
         try:
             #print("Hello bocha")
             data = json.loads(request.body)
-        
+
             #print("mukund here")
             if 'asset_name' in data:
                 items = Response.objects.filter(AssetName=data['asset_name'])
                 dict = {}
                 for x in items:
                     properties = {'OS': x.OS, 'Hostname': x.Hostname, 'MAC': x.MAC,
-                                'IP': x.IP, 'Status': x.Status, 'Last Updated': str(x.LastUpdated)}
+                                  'IP': x.IP, 'Status': x.Status, 'Last Updated': str(x.LastUpdated)}
                     dict[x.AssetName] = properties
                 #jsr = json.loads(dict)
                 return JsonResponse(dict)
@@ -201,21 +199,20 @@ class SearchResponse(View):
                 dict = {}
                 for x in items:
                     properties = {'OS': x.OS, 'Hostname': x.Hostname, 'MAC': x.MAC,
-                                'IP': x.IP, 'Status': x.Status, 'Last Updated': str(x.LastUpdated)}
+                                  'IP': x.IP, 'Status': x.Status, 'Last Updated': str(x.LastUpdated)}
                     dict[x.AssetName] = properties
                 #jsr = json.loads(dict)
                 return JsonResponse(dict)
         except:
             item = Response.objects.all()
-            dict={}
+            dict = {}
             for x in item:
                 if x.AssetName == "":
                     continue
                 properties = {'OS': x.OS, 'Hostname': x.Hostname, 'MAC': x.MAC,
                               'IP': x.IP, 'Status': x.Status, 'Last Updated': str(x.LastUpdated)}
                 dict[x.AssetName] = properties
-            #print(type(dict))
+            # print(type(dict))
             #jsr = json.loads(dict)
-            #print(type(dict))
+            # print(type(dict))
             return JsonResponse(dict)
-
