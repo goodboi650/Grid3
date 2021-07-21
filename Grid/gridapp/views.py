@@ -11,11 +11,29 @@ import json
 import subprocess
 import sys
 
-def run_item(password,username,server,port):
+
+def user(request):
+    return render(request, 'gridapp/user.html')
+
+
+def login(request):
+    return render(request, 'gridapp/login.html')
+
+
+def gridadmin(request):
+    return render(request, 'gridapp/gridadmin.html')
+
+
+def ipscreen(request):
+    return render(request, 'gridapp/ipscreen.html')
+
+
+def run_item(password, username, server, port):
     command = f'sshpass -p {password} ssh {username}@{server} -p {port} python < script.py'
-    process = subprocess.Popen(f'{command}',shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-   
-    (out,err) = process.communicate()
+    process = subprocess.Popen(
+        f'{command}', shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+
+    (out, err) = process.communicate()
     if process.returncode == 0:
         sout = out.decode("utf-8")
         d = json.loads(sout)
@@ -24,7 +42,8 @@ def run_item(password,username,server,port):
         print(json.dumps(d))
         return d
     else:
-        errd = {'Asset_Name':server,'IP':'','MAC':'','Hostname':'','OS':''}
+        errd = {'Asset_Name': server, 'IP': '',
+                'MAC': '', 'Hostname': '', 'OS': ''}
         serr = err.decode("utf-8")
         index = serr.rfind(":")
         errd['Status'] = serr[index+2:-2]
@@ -32,6 +51,7 @@ def run_item(password,username,server,port):
         return errd
 
     print('\n')
+
 
 @method_decorator(csrf_exempt, name='dispatch')
 class SubmitOneRequest(View):
@@ -44,8 +64,8 @@ class SubmitOneRequest(View):
         try:
             obj = Response.objects.get(AssetName=server)
             dict = run_item(obj.Password, obj.Username, obj.Server, obj.Port)
-            #TODO: check if error
-            if dict['Status']=='UP':
+            # TODO: check if error
+            if dict['Status'] == 'UP':
                 #Assetname = dict['Asset_name'],
                 ip = dict['IP']
                 mac = dict['MAC']
@@ -58,7 +78,8 @@ class SubmitOneRequest(View):
                 obj.Hostname = hostname
                 obj.Status = dict['Status']
                 obj.LastUpdated = datetime.now()
-                obj.save(update_fields=['IP', 'MAC', 'OS', 'Hostname', 'Status', 'LastUpdated'])
+                obj.save(update_fields=['IP', 'MAC', 'OS',
+                         'Hostname', 'Status', 'LastUpdated'])
             else:
                 obj.Status = dict['Status']
                 obj.LastUpdated = datetime.now()
@@ -68,11 +89,12 @@ class SubmitOneRequest(View):
             return HttpResponse("Yellubhai tu galat search karra")
         return HttpResponse("Success")
 
+
 @method_decorator(csrf_exempt, name='dispatch')
 class SubmitAllRequest(View):
     def post(self, request):
         lines = []
-        count=1
+        count = 1
         all_items = Response.objects.all()
         for item in all_items:
             print(f"Asset {count}\n")
@@ -85,9 +107,9 @@ class SubmitAllRequest(View):
             password = item.Password
             obj = Response.objects.get(Username=username, Password=password)
             dict = run_item(password, username, server, port)
-            #TODO: check if error
+            # TODO: check if error
             print(dict)
-            if dict['Status']=='UP':
+            if dict['Status'] == 'UP':
                 #Assetname = dict['Asset_name'],
                 ip = dict['IP']
                 mac = dict['MAC']
@@ -100,14 +122,16 @@ class SubmitAllRequest(View):
                 obj.Hostname = hostname
                 obj.Status = dict['Status']
                 obj.LastUpdated = datetime.now()
-                obj.save(update_fields=['IP', 'MAC', 'OS', 'Hostname', 'Status', 'LastUpdated'])
+                obj.save(update_fields=['IP', 'MAC', 'OS',
+                         'Hostname', 'Status', 'LastUpdated'])
             else:
                 obj.Status = dict['Status']
                 obj.LastUpdated = datetime.now()
                 obj.save(update_fields=['Status', 'LastUpdated'])
-            count=count+1
+            count = count+1
         return HttpResponse("Success")
-        
+
+
 @method_decorator(csrf_exempt, name='dispatch')
 class CreateResponse(View):
     def post(self, request):
@@ -117,10 +141,12 @@ class CreateResponse(View):
         password = data['password']
         port = data['port']
         try:
-            Response.objects.create(AssetName=server,Server=server, Username=username, Password=password, Port=port)
+            Response.objects.create(
+                AssetName=server, Server=server, Username=username, Password=password, Port=port)
             return HttpResponse({"Yelluru Pilega"})
         except:
             return HttpResponse({"Muku Pilega"})
+
 
 @method_decorator(csrf_exempt, name='dispatch')
 class DeleteResponse(View):
@@ -128,7 +154,8 @@ class DeleteResponse(View):
         data = json.loads(request.body)
         server = data['asset_name']
         Response.objects.filter(AssetName=server).delete()
-        
+
+
 @method_decorator(csrf_exempt, name='dispatch')
 class SearchResponse(View):
     def get(self, request):
@@ -137,7 +164,8 @@ class SearchResponse(View):
             items = Response.objects.filter(AssetName=data['asset_name']).get()
             dict = {}
             for x in items:
-                properties = {'OS':x.OS, 'Hostname':x.Hostname, 'MAC':x.MAC, 'IP':x.IP, 'Status':x.Status, 'Last Updated':x.LastUpdated}
+                properties = {'OS': x.OS, 'Hostname': x.Hostname, 'MAC': x.MAC,
+                              'IP': x.IP, 'Status': x.Status, 'Last Updated': x.LastUpdated}
                 dict[x.AssetName] = properties
             jsr = json.loads(dict)
             return JsonResponse(jsr)
@@ -145,7 +173,8 @@ class SearchResponse(View):
             items = Response.objects.filter(OS=data['OS']).get()
             dict = {}
             for x in items:
-                properties = {'OS':x.OS, 'Hostname':x.Hostname, 'MAC':x.MAC, 'IP':x.IP, 'Status':x.Status, 'Last Updated':x.LastUpdated}
+                properties = {'OS': x.OS, 'Hostname': x.Hostname, 'MAC': x.MAC,
+                              'IP': x.IP, 'Status': x.Status, 'Last Updated': x.LastUpdated}
                 dict[x.AssetName] = properties
             jsr = json.loads(dict)
             return JsonResponse(jsr)
