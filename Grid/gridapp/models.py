@@ -14,4 +14,5 @@ class Response(models.Model):
     OS = models.CharField(max_length=100)
     #Domaininfo
     Status = models.CharField(max_length=100, null=True)
+    LastSeen = models.TimeField(null=True)
     LastUpdated = models.TimeField(null=True)

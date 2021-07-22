@@ -152,6 +152,7 @@ class SubmitAllRequest(View):
                 item.OS = os
                 item.Hostname = hostname
                 item.Status = dict['Status']
+                item.LastSeen = datetime.now()
                 item.LastUpdated = datetime.now()
                 item.save(update_fields=['IP', 'MAC', 'OS',
                                          'Hostname', 'Status', 'LastUpdated'])
