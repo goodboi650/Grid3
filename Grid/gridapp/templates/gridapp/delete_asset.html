@@ -1,0 +1,18 @@
+{% extends "gridapp/base.html" %}
+
+{% block title %}
+    Delete Assets
+{% endblock title %}
+
+{% block content %}
+<h1>Delete an Asset</h1>
+<form action='/delete' method='POST'>
+    <div class="form-group">
+        <label for="formGroupExampleInput">Asset Name</label>
+        <input type="text" class="form-control" id="formGroupExampleInput" placeholder="Enter Asset Name" name="server"> 
+      <small id="emailHelp" class="form-text text-muted">Only those Assets that are present in the database can be deleted.</small>
+    </div>
+    
+    <button type="submit" class="btn btn-primary">Delete</button>
+  </form>
+{% endblock content %}

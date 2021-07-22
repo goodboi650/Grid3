@@ -15,14 +15,14 @@
             {% block title %}{% endblock %}
         </title>
     </head>
-    <body>
+    <body class>
         <header class="site-header">
             <nav class="navbar navbar-expand-md navbar-dark bg-steel fixed-top">
               <div class="container">
                 {% if user.is_authenticated %}
-                <a class="navbar-brand mr-4" href="/gridadmin">Hon3yp0t :)</a>
+                <a class="navbar-brand mr-4" href="/gridadmin">Discoverer</a>
                 {% else %}
-                  <a class="navbar-brand mr-4" href="/">Hon3yp0t :)</a>
+                  <a class="navbar-brand mr-4" href="/">Discoverer</a>
                 {% endif %}
                 <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarToggle" aria-controls="navbarToggle" aria-expanded="false" aria-label="Toggle navigation">
                 <span class="navbar-toggler-icon"></span>
@@ -34,7 +34,7 @@
                     {% else %}
                       <a class="nav-item nav-link" href="/">Home</a>
                     {% endif %}
-                    <a class="nav-item nav-link" href="/onerequest">Single Scan</a>           <!-- Delete this later.-->
+                    <a class="nav-item nav-link" href="/singlescan">Single Scan</a>           <!-- Delete this later.-->
                     <a class="nav-item nav-link" href="/allrequest">Scan All</a> 
                   </div>
                   <!-- Navbar Right Side -->

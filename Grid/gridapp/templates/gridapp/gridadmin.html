@@ -19,19 +19,25 @@
         <header class="site-header">
             <nav class="navbar navbar-expand-md navbar-dark bg-steel fixed-top">
               <div class="container">
-                <a class="navbar-brand mr-4" href="/gridadmin">Hon3yp0t :)</a>
+                <a class="navbar-brand mr-4" href="/gridadmin">Discoverer</a>
                 <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarToggle" aria-controls="navbarToggle" aria-expanded="false" aria-label="Toggle navigation">
                 <span class="navbar-toggler-icon"></span>
                 </button>
                 <div class="collapse navbar-collapse" id="navbarToggle">
                   <div class="navbar-nav mr-auto">
                     <!-- <a class="nav-item nav-link" href="/">Home</a> -->
-                    <a class="nav-item nav-link" href="/onerequest">Single Scan</a>           <!-- Delete this later.-->
+                    <a class="nav-item nav-link" href="/search/">Asset List</a>
+                    <a class="nav-item nav-link" href="/singlescan">Single Scan</a>           <!-- Delete this later.-->
                     <a class="nav-item nav-link" href="/allrequest">Scan All</a>
-                    <a class="nav-item nav-link" href="/ipscreen">IP List</a>
+                    <a class="nav-item nav-link" href="/add_asset">Add an Asset</a>
+                    <a class="nav-item nav-link" href="/delete_asset">Delete an Asset</a>
+
+
+
                   </div>
                   <!-- Navbar Right Side -->
                   <div class="navbar-nav">
+                    <a class="nav-item nav-link" href="/gridapp">Hello, Admin</a>
                     <a class="nav-item nav-link" href="/logout">Logout</a>
                   </div>
                 </div>
@@ -42,7 +48,19 @@
         <main role="main" class="container">
             <div class="row">
               <div class="col-md-8">
-                <h1>normal admin page in html</h1>
+                <h1>Search</h1>
+                <form>
+                    <div class="form-group">
+                      <label for="formGroupExampleInput">Asset Name</label>
+                      <input type="text" class="form-control" id="formGroupExampleInput" placeholder="Enter Asset Name">
+                    </div>
+                    <div class="form-group">
+                      <label for="formGroupExampleInput2">Operating System</label>
+                      <input type="text" class="form-control" id="formGroupExampleInput2" placeholder="Enter OS">
+                    </div>
+                    <button type="submit" class="btn btn-primary">Search Database</button>
+
+                  </form>
               </div>
               <!-- <div class="col-md-4">
                 <div class="content-section">

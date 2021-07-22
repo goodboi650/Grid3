@@ -7,7 +7,7 @@ urlpatterns = [
     path('allrequest', views.SubmitAllRequest.as_view(), name='submit_all_request'),
     path('create_response', views.CreateResponse.as_view(), name='create_response'),
     path('delete', views.DeleteResponse.as_view(), name='delete'),
-    path('search', views.SearchResponse.as_view(), name='search'),
+    path('search/', views.SearchResponse.as_view(), name='search'),
 
     path('', views.user, name='user'),
     path('gridadmin', views.gridadmin, name='grid-admin'),
@@ -15,5 +15,11 @@ urlpatterns = [
         template_name='gridapp/login.html'), name='login'),
     path('logout', auth_views.LogoutView.as_view(
         template_name='gridapp/logout.html'), name='logout'),
-    path('ipscreen', views.ipscreen, name='ip-screen'),
+    #path('search', views.ipscreen, name='ip-screen'),
+    path('singlescan', views.singlescan, name='singlescan'),
+    path('add_asset', views.add_asset, name='add_asset'),
+    path('delete_asset', views.delete_asset, name='delete_asset'),
+
+
+
 ]
