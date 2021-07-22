@@ -1,8 +1,23 @@
 {% extends "gridapp/base.html" %}
 
 {% block title %}
-    User Page
+    Add an Asset
 {% endblock title %}
+
+{% block nav %}  
+  <div class="navbar-nav mr-auto">
+    <a class="nav-item nav-link" href="/gridadmin">Home</a>
+    <a class="nav-item nav-link" href="/gridadmin">Asset List</a>
+    <a class="nav-item nav-link" href="/singlescan">Single Scan</a>
+    <a class="nav-item nav-link" href="/allrequest">Scan All</a>
+    <a class="nav-item nav-link" href="/delete_asset">Delete an Asset</a>
+  </div>
+  <!-- Navbar Right Side -->
+  <div class="navbar-nav">
+    <a class="nav-item nav-link" href="/gridapp">Hello, Admin</a>
+    <a class="nav-item nav-link" href="/logout">Log out</a>
+  </div>
+{% endblock nav %}
 
 {% block content %}
 

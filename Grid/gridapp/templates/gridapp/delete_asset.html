@@ -4,13 +4,28 @@
     Delete Assets
 {% endblock title %}
 
+{% block nav %}  
+  <div class="navbar-nav mr-auto">
+    <a class="nav-item nav-link" href="/gridadmin">Home</a>
+    <a class="nav-item nav-link" href="/gridadmin">Asset List</a>
+    <a class="nav-item nav-link" href="/singlescan">Single Scan</a>
+    <a class="nav-item nav-link" href="/allrequest">Scan All</a>
+    <a class="nav-item nav-link" href="/add_asset">Add an Asset</a>
+  </div>
+  <!-- Navbar Right Side -->
+  <div class="navbar-nav">
+    <a class="nav-item nav-link" href="/gridapp">Hello, Admin</a>
+    <a class="nav-item nav-link" href="/logout">Log out</a>
+  </div>
+{% endblock nav %}
+
 {% block content %}
 <h1>Delete an Asset</h1>
 <form action='/delete' method='POST'>
     <div class="form-group">
         <label for="formGroupExampleInput">Asset Name</label>
         <input type="text" class="form-control" id="formGroupExampleInput" placeholder="Enter Asset Name" name="server"> 
-      <small id="emailHelp" class="form-text text-muted">Only those Assets that are present in the database can be deleted.</small>
+      <small id="emailHelp" class="form-text text-muted">Only Assets present in the database can be deleted.</small>
     </div>
     
     <button type="submit" class="btn btn-primary">Delete</button>

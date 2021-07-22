@@ -1,8 +1,23 @@
 {% extends "gridapp/base.html" %}
 
 {% block title %}
-    User Page
+    Home
 {% endblock title %}
+
+{% block nav %}  
+  <div class="navbar-nav mr-auto">
+    <a class="nav-item nav-link" href="/singlescan">Single Scan</a>
+    <a class="nav-item nav-link" href="/allrequest">Scan All</a> 
+  </div>
+  <!-- Navbar Right Side -->
+  <div class="navbar-nav">
+    {% if user.is_authenticated %}
+    <a class="nav-item nav-link" href="/logout">Log out</a>
+    {% else %}
+      <a class="nav-item nav-link" href="/login">Log in</a>
+    {% endif %}
+  </div>
+{% endblock nav %}
 
 {% block content %}
 <h1>Search</h1>
