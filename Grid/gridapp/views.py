@@ -36,7 +36,6 @@ def delete_asset(request):
 
 
 def run_item(password, username, server, port, no):
-    print(f'sshpass -p {password} ssh {username}@{server} -p {port} python3 < script{no}.py')
     command = f'sshpass -p {password} ssh {username}@{server} -p {port} python3 < script{no}.py'
     process = subprocess.Popen(
         f'{command}', shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
@@ -150,7 +149,7 @@ class SubmitAllRequest(View):
             username = item.Username
             password = item.Password
             no = 2
-            if item.DomainInfo is 'None':
+            if item.DomainInfo is None:
                 no = 1
             #obj = Response.objects.get(AssetName=server,Username=username, Password=password)
             dict = run_item(password, username, server, port, no)
