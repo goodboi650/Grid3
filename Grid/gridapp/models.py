@@ -13,6 +13,7 @@ class Response(models.Model):
     MAC = models.CharField(max_length=100)
     OS = models.CharField(max_length=100)
     #Domaininfo
+    DomainInfo = models.FileField
     Status = models.CharField(max_length=100, null=True)
-    LastSeen = models.TimeField(null=True)
+    LastSeenAlive = models.TimeField(null=True)
     LastUpdated = models.TimeField(null=True)

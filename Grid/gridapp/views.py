@@ -4,6 +4,7 @@ from django.http import JsonResponse
 from django.utils.decorators import method_decorator
 from django.views.decorators.csrf import csrf_exempt
 from django.views import View
+from django.core.files import File
 from gridapp.models import Response
 from datetime import datetime
 
@@ -34,8 +35,8 @@ def delete_asset(request):
 
 
 
-def run_item(password, username, server, port):
-    command = f'sshpass -p {password} ssh {username}@{server} -p {port} python3 < script.py'
+def run_item(password, username, server, port, no):
+    command = f'sshpass -p {password} ssh {username}@{server} -p {port} python3 < script{no}.py'
     process = subprocess.Popen(
         f'{command}', shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
 
@@ -58,7 +59,7 @@ def run_item(password, username, server, port):
         # return errd
 
     if d['Status'] != 'UP':
-        command = f'sshpass -p {password} ssh {username}@{server} -p {port} python < script.py'
+        command = f'sshpass -p {password} ssh {username}@{server} -p {port} python3 < script{no}.py'
         process = subprocess.Popen(
             f'{command}', shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
         (out, err) = process.communicate()
@@ -92,7 +93,10 @@ class SubmitOneRequest(View):
         #port = data['port']
         try:
             obj = Response.objects.get(AssetName=server)
-            dict = run_item(obj.Password, obj.Username, obj.Server, obj.Port)
+            no = 2
+            if obj.DomainInfo is None:
+                no = 1
+            dict = run_item(obj.Password, obj.Username, obj.Server, obj.Port, no)
             # TODO: check if error
             print(dict)
             if dict['Status'] == 'UP':
@@ -107,6 +111,14 @@ class SubmitOneRequest(View):
                 obj.OS = os
                 obj.Hostname = hostname
                 obj.Status = dict['Status']
+                dom = dict['Domain Info']
+                if obj.Domaininfo is None:
+                    with open (f'./media/{server}','w') as f:
+                        Dfile = File(f)
+                        Dfile.write(dom)
+                        obj.DomainInfo = Dfile
+                    f.close()
+                obj.LastSeenAlive = datetime.now()
                 obj.LastUpdated = datetime.now()
                 obj.save(update_fields=['IP', 'MAC', 'OS',
                          'Hostname', 'Status', 'LastUpdated'])
@@ -136,8 +148,11 @@ class SubmitAllRequest(View):
             server = item.Server
             username = item.Username
             password = item.Password
+            no = 2
+            if item.DomainInfo is None:
+                no = 1
             #obj = Response.objects.get(AssetName=server,Username=username, Password=password)
-            dict = run_item(password, username, server, port)
+            dict = run_item(password, username, server, port, no)
             # TODO: check if error
             print(dict)
             if dict['Status'] == 'UP':
@@ -152,7 +167,7 @@ class SubmitAllRequest(View):
                 item.OS = os
                 item.Hostname = hostname
                 item.Status = dict['Status']
-                item.LastSeen = datetime.now()
+                item.LastSeenAlive = datetime.now()
                 item.LastUpdated = datetime.now()
                 item.save(update_fields=['IP', 'MAC', 'OS',
                                          'Hostname', 'Status', 'LastUpdated'])
@@ -203,7 +218,7 @@ class SearchResponse(View):
             if x.AssetName == "":
                 continue
             properties = {'OS': x.OS, 'Hostname': x.Hostname, 'MAC': x.MAC,
-                            'IP': x.IP, 'Status': x.Status, 'Last Updated': str(x.LastUpdated)}
+                            'IP': x.IP, 'Status': x.Status,'LastSeenAlive': str(x.LastSeenAlive), 'Last Updated': str(x.LastUpdated)}
             dict[x.AssetName] = properties
         # print(type(dict))
         #jsr = json.loads(dict)
@@ -221,7 +236,7 @@ class SearchResponse(View):
                 dict = {}
                 for x in items:
                     properties = {'OS': x.OS, 'Hostname': x.Hostname, 'MAC': x.MAC,
-                                  'IP': x.IP, 'Status': x.Status, 'Last Updated': str(x.LastUpdated)}
+                            'IP': x.IP, 'Status': x.Status,'LastSeenAlive': str(x.LastSeenAlive), 'Last Updated': str(x.LastUpdated)}
                     dict[x.AssetName] = properties
                 #jsr = json.loads(dict)
                 return JsonResponse(dict)
@@ -230,7 +245,7 @@ class SearchResponse(View):
                 dict = {}
                 for x in items:
                     properties = {'OS': x.OS, 'Hostname': x.Hostname, 'MAC': x.MAC,
-                                  'IP': x.IP, 'Status': x.Status, 'Last Updated': str(x.LastUpdated)}
+                            'IP': x.IP, 'Status': x.Status,'LastSeenAlive': str(x.LastSeenAlive), 'Last Updated': str(x.LastUpdated)}
                     dict[x.AssetName] = properties
                 #jsr = json.loads(dict)
                 return JsonResponse(dict)
@@ -241,7 +256,7 @@ class SearchResponse(View):
                 if x.AssetName == "":
                     continue
                 properties = {'OS': x.OS, 'Hostname': x.Hostname, 'MAC': x.MAC,
-                              'IP': x.IP, 'Status': x.Status, 'Last Updated': str(x.LastUpdated)}
+                            'IP': x.IP, 'Status': x.Status,'LastSeenAlive': str(x.LastSeenAlive), 'Last Updated': str(x.LastUpdated)}
                 dict[x.AssetName] = properties
             # print(type(dict))
             #jsr = json.loads(dict)
