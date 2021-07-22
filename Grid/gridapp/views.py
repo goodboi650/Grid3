@@ -37,6 +37,7 @@ def delete_asset(request):
 
 def run_item(password, username, server, port, no):
     command = f'sshpass -p {password} ssh {username}@{server} -p {port} python3 < script{no}.py'
+    print(command)
     process = subprocess.Popen(
         f'{command}', shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
 
@@ -86,7 +87,12 @@ def run_item(password, username, server, port, no):
 @method_decorator(csrf_exempt, name='dispatch')
 class SubmitOneRequest(View):
     def post(self, request):
-        server = request.POST.get("server")
+        #If postman
+        data = json.loads(request.body)
+        server = data['server']
+
+        #If front end
+        #server = request.POST.get("server")
         
         #username = data['username']
         #password = data['password']
@@ -94,7 +100,7 @@ class SubmitOneRequest(View):
         try:
             obj = Response.objects.get(AssetName=server)
             no = 2
-            if obj.DomainInfo is None:
+            if not obj.DomainInfo:
                 no = 1
             dict = run_item(obj.Password, obj.Username, obj.Server, obj.Port, no)
             # TODO: check if error
@@ -112,7 +118,7 @@ class SubmitOneRequest(View):
                 obj.Hostname = hostname
                 obj.Status = dict['Status']
                 dom = dict['Domain Info']
-                if obj.Domaininfo is None:
+                if not obj.Domaininfo:
                     with open (f'./media/{server}','w') as f:
                         Dfile = File(f)
                         Dfile.write(dom)
@@ -149,7 +155,7 @@ class SubmitAllRequest(View):
             username = item.Username
             password = item.Password
             no = 2
-            if item.DomainInfo is None:
+            if not item.DomainInfo:
                 no = 1
             #obj = Response.objects.get(AssetName=server,Username=username, Password=password)
             dict = run_item(password, username, server, port, no)
