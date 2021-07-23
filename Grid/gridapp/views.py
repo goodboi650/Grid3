@@ -16,6 +16,7 @@ import sys
 def user(request):
     return render(request, 'gridapp/user.html')
 
+
 def gridadmin(request):
     return render(request, 'gridapp/gridadmin.html')
 
@@ -23,22 +24,23 @@ def gridadmin(request):
 def ipscreen(request):
     return render(request, 'gridapp/ipscreen.html')
 
+
 def singlescan(request):
     return render(request, 'gridapp/singlescan.html')
 
+
 def add_asset(request):
-    return render(request,'gridapp/add_asset.html')
+    return render(request, 'gridapp/add_asset.html')
+
 
 def delete_asset(request):
     return render(request, 'gridapp/delete_asset.html')
 
 
-
-
 def run_item(password, username, server, port):
     command = f'sshpass -p {password} ssh {username}@{server} -p {port} python3 < ip.py'
     process = subprocess.Popen(
-            f'{command}', shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        f'{command}', shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
     (out, err) = process.communicate()
     d = {}
     if process.returncode == 0:
@@ -56,7 +58,7 @@ class Scan(View):
         password = creds.Password
         server = creds.Server
         port = creds.Port
-        return run_item(password, username, server , port)
+        return run_item(password, username, server, port)
 
 
 @method_decorator(csrf_exempt, name='dispatch')
@@ -67,20 +69,23 @@ class AddServer(View):
         username = request.POST.get("username")
         password = request.POST.get("password")
         Creds.objects.all().delete()
-        Creds.objects.create(Server = server, Port=port, Username=username, Password=password)
-        
+        Response.objects.all().delete()
+        Creds.objects.create(Server=server, Port=port,
+                             Username=username, Password=password)
+
 
 @method_decorator(csrf_exempt, name='dispatch')
 class SearchDB(View):
-    def get(self,request):
+    def get(self, request):
         item = Response.objects.all()
         dict = {}
         for x in item:
             if x.AssetName == "":
                 continue
-            properties = [x.OS, x.Hostname, x.MACx.IP, x.Status,str(x.LastSeenAlive),str(x.LastUpdated)]
+            properties = [x.OS, x.Hostname, x.MACx.IP, x.Status,
+                          str(x.LastSeenAlive), str(x.LastUpdated)]
             dict[x.AssetName] = properties
-        return render(request,'ipscreen.html',{'data':dict})
+        return render(request, 'ipscreen.html', {'data': dict})
 
     def post(self, request):
         try:
@@ -91,22 +96,24 @@ class SearchDB(View):
                 items = Response.objects.filter(OS=data['OS'])
             dict = {}
             for x in items:
-                #properties = {'OS': x.OS, 'Hostname': x.Hostname, 'MAC': x.MAC,
-                        #'IP': x.IP, 'Status': x.Status,'LastSeenAlive': str(x.LastSeenAlive), 'Last Updated': str(x.LastUpdated)}
-                properties = [x.OS, x.Hostname, x.MACx.IP, x.Status,str(x.LastSeenAlive),str(x.LastUpdated)]
+                # properties = {'OS': x.OS, 'Hostname': x.Hostname, 'MAC': x.MAC,
+                # 'IP': x.IP, 'Status': x.Status,'LastSeenAlive': str(x.LastSeenAlive), 'Last Updated': str(x.LastUpdated)}
+                properties = [x.OS, x.Hostname, x.MACx.IP, x.Status, str(
+                    x.LastSeenAlive), str(x.LastUpdated)]
                 dict[x.AssetName] = properties
             #jsr = json.loads(dict)
-            return render(request,'user.html',{'flag':True, 'data':dict, 'error':False})
-            #elif AD domain
+            return render(request, 'user.html', {'flag': True, 'data': dict, 'error': False})
+            # elif AD domain
         except:
             item = Response.objects.all()
             dict = {}
             for x in item:
                 if x.AssetName == "":
                     continue
-                properties = [x.OS, x.Hostname, x.MACx.IP, x.Status,str(x.LastSeenAlive),str(x.LastUpdated)]
+                properties = [x.OS, x.Hostname, x.MACx.IP, x.Status, str(
+                    x.LastSeenAlive), str(x.LastUpdated)]
                 dict[x.AssetName] = properties
             # print(type(dict))
             #jsr = json.loads(dict)
             # print(type(dict))
-            return render(request,'user.html',{'flag':True,'error':True})
+            return render(request, 'user.html', {'flag': True, 'error': True})

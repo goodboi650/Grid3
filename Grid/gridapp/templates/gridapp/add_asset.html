@@ -7,10 +7,7 @@
 {% block nav %}  
   <div class="navbar-nav mr-auto">
     <a class="nav-item nav-link" href="/gridadmin">Home</a>
-    <a class="nav-item nav-link" href="/gridadmin">Asset List</a>
-    <a class="nav-item nav-link" href="/singlescan">Single Scan</a>
-    <a class="nav-item nav-link" href="/allrequest">Scan All</a>
-    <a class="nav-item nav-link" href="/delete_asset">Delete an Asset</a>
+    <a class="nav-item nav-link" href="/gridadmin">Scan</a>
   </div>
   <!-- Navbar Right Side -->
   <div class="navbar-nav">
@@ -22,10 +19,10 @@
 {% block content %}
 
 <form action='/create_response' method='POST'>
-    <h1>Add Asset</h1>
+    <h1>Update Server Credentials</h1>
     <div class="form-group">
-      <label for="formGroupExampleInput">Asset Name</label>
-      <input type="text" class="form-control" id="formGroupExampleInput" placeholder="Enter Asset Name" name="server">
+      <label for="formGroupExampleInput">Server Name</label>
+      <input type="text" class="form-control" id="formGroupExampleInput" placeholder="Enter Server Name" name="server">
     </div>
     <div class="form-group">
       <label for="formGroupExampleInput2">Username</label>
@@ -42,7 +39,7 @@
         <input type="text" class="form-control" id="formGroupExampleInput2" placeholder="22" name="port">
         
       </div>
-    <button type="submit" class="btn btn-primary">Insert Asset</button>
+    <button type="submit" class="btn btn-primary">Update</button>
 
   </form>
 {% endblock content %}

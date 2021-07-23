@@ -1,7 +1,7 @@
 {% extends "gridapp/base.html" %}
 
 {% block title %}
-    Single Scan
+    Scan
 {% endblock title %}
 
 {% block nav %}  
@@ -14,13 +14,6 @@
 
     {% if user.is_authenticated %}
       <a class="nav-item nav-link" href="/gridadmin">Asset List</a>
-    {% endif %}
-
-    <a class="nav-item nav-link" href="/allrequest">Scan All</a>
-    
-    {% if user.is_authenticated %}
-      <a class="nav-item nav-link" href="/add_asset">Add an Asset</a>
-      <a class="nav-item nav-link" href="/delete_asset">Delete an Asset</a>
     {% endif %}
 
   </div>
