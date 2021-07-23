@@ -58,7 +58,26 @@ class Scan(View):
         password = creds.Password
         server = creds.Server
         port = creds.Port
-        return run_item(password, username, server, port)
+        d = run_item(password, username, server, port)
+        for key,value in d:
+            obj = Response.object.query(IP=key).get()
+            now = datetime.now()
+            if not obj:
+                Response.object.create(Hostname=value["Hostname"],MAC = value["MAC"], Status=value["Status"], OS=value["OS"], LastSeenAlive = now, LastUpdated = now)
+            else:
+                obj.Hostname = value["Hostname"]
+                obj.MAC = value["MAC"]
+                obj.OS = value["OS"]
+                obj.Status = value["Status"]
+                obj.LastSeenAlive = now
+                obj.LastUpdated = now
+                obj.save(update_fields=["Hostname","OS","MAC","Status","LastSeenAlive","LastUpdated"])
+        all_items = Response.object.all()
+        for x in all_items:
+            if x.IP  not in d:
+                obj.Status = "Down"
+                obj.LastUpdated = now
+                obj.save(update_fields=["Status","LastUpdated"])
 
 
 @method_decorator(csrf_exempt, name='dispatch')
