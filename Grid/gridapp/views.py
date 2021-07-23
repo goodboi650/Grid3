@@ -53,17 +53,24 @@ def run_item(password, username, server, port):
 @method_decorator(csrf_exempt, name='dispatch')
 class Scan(View):
     def get(self, request):
-        creds = Creds.objects.all()[0]
+        creds = Creds.objects.all()
+        page = 'gridapp/user.html'
+        if(request.user.is_authenticated):
+            page = 'gridapp/gridadmin.html'
+        if(len(creds) == 0):
+            return render(request, page, context={'error': True, 'data': {}})
+        creds = creds[0]
         username = creds.Username
         password = creds.Password
         server = creds.Server
         port = creds.Port
         d = run_item(password, username, server, port)
-        for key,value in d:
+        for key, value in d:
             obj = Response.object.query(IP=key).get()
             now = datetime.now()
             if not obj:
-                Response.object.create(Hostname=value["Hostname"],MAC = value["MAC"], Status=value["Status"], OS=value["OS"], LastSeenAlive = now, LastUpdated = now)
+                Response.object.create(Hostname=value["Hostname"], MAC=value["MAC"],
+                                       Status=value["Status"], OS=value["OS"], LastSeenAlive=now, LastUpdated=now)
             else:
                 obj.Hostname = value["Hostname"]
                 obj.MAC = value["MAC"]
@@ -71,13 +78,15 @@ class Scan(View):
                 obj.Status = value["Status"]
                 obj.LastSeenAlive = now
                 obj.LastUpdated = now
-                obj.save(update_fields=["Hostname","OS","MAC","Status","LastSeenAlive","LastUpdated"])
+                obj.save(update_fields=[
+                    "Hostname", "OS", "MAC", "Status", "LastSeenAlive", "LastUpdated"])
         all_items = Response.object.all()
         for x in all_items:
-            if x.IP  not in d:
+            if x.IP not in d:
                 obj.Status = "Down"
                 obj.LastUpdated = now
-                obj.save(update_fields=["Status","LastUpdated"])
+                obj.save(update_fields=["Status", "LastUpdated"])
+        return render(request, page, context={'error': False, 'data': d})
 
 
 @method_decorator(csrf_exempt, name='dispatch')
