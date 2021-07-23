@@ -20,5 +20,37 @@
 {% endblock nav %}
 
 {% block content %}
- <h1>asset list</h1>
+  <!-- <div id="assetTable">
+    <table>
+      <thead>
+
+      </thead>
+      <tbody>
+        {% for index,row in enumerate(data) %}
+          <tr>
+            <th>{index}</th>
+            {% for col in row %}
+            {% endfor %}
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div> -->
+
+  <script>
+    var table = document.createElement('table'), tr, td, row, cell;
+    table.className = "table table-striped table-bordered";
+    var tablebody = document.createElement('tbody');
+    table.appendChild(tablebody);
+    for (row = 0; row < 10; row++) {
+        tr = document.createElement('tr');
+        for (cell = 0; cell < 22; cell++) {
+            td = document.createElement('td');
+            tr.appendChild(td);
+            td.innerHTML = row * 22 + cell + 1;
+        }
+        tablebody.appendChild(tr);
+    }
+    document.getElementById('assetTable').appendChild(table);
+  </script>
 {% endblock content %}

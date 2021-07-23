@@ -16,6 +16,7 @@ import sys
 def user(request):
     return render(request, 'gridapp/user.html')
 
+
 def gridadmin(request):
     return render(request, 'gridapp/gridadmin.html')
 
@@ -23,16 +24,21 @@ def gridadmin(request):
 def ipscreen(request):
     return render(request, 'gridapp/ipscreen.html')
 
+
 def singlescan(request):
     return render(request, 'gridapp/singlescan.html')
 
+
 def add_asset(request):
-    return render(request,'gridapp/add_asset.html')
+    return render(request, 'gridapp/add_asset.html')
+
 
 def delete_asset(request):
     return render(request, 'gridapp/delete_asset.html')
 
 
+def ipscreen(request):
+    return render(request, 'gridapp/ipscreen.html')
 
 
 def run_item(password, username, server, port, no):
@@ -87,13 +93,13 @@ def run_item(password, username, server, port, no):
 @method_decorator(csrf_exempt, name='dispatch')
 class SubmitOneRequest(View):
     def post(self, request):
-        #If postman
+        # If postman
         data = json.loads(request.body)
         server = data['server']
 
-        #If front end
+        # If front end
         #server = request.POST.get("server")
-        
+
         #username = data['username']
         #password = data['password']
         #port = data['port']
@@ -102,7 +108,8 @@ class SubmitOneRequest(View):
             no = 2
             if not obj.DomainInfo:
                 no = 1
-            dict = run_item(obj.Password, obj.Username, obj.Server, obj.Port, no)
+            dict = run_item(obj.Password, obj.Username,
+                            obj.Server, obj.Port, no)
             # TODO: check if error
             print(dict)
             if dict['Status'] == 'UP':
@@ -119,7 +126,7 @@ class SubmitOneRequest(View):
                 obj.Status = dict['Status']
                 dom = dict['Domain Info']
                 if not obj.Domaininfo:
-                    with open (f'./media/{server}','w') as f:
+                    with open(f'./media/{server}', 'w') as f:
                         Dfile = File(f)
                         Dfile.write(dom)
                         obj.DomainInfo = Dfile
@@ -135,7 +142,7 @@ class SubmitOneRequest(View):
         except Exception as e:
             print(e)
             return HttpResponse("Yellubhai tu galat search karra")
-        
+
         return JsonResponse(dict)
 
 
@@ -217,14 +224,14 @@ class DeleteResponse(View):
 
 @method_decorator(csrf_exempt, name='dispatch')
 class SearchResponse(View):
-    def get(self,request):
+    def get(self, request):
         item = Response.objects.all()
         dict = {}
         for x in item:
             if x.AssetName == "":
                 continue
             properties = {'OS': x.OS, 'Hostname': x.Hostname, 'MAC': x.MAC,
-                            'IP': x.IP, 'Status': x.Status,'LastSeenAlive': str(x.LastSeenAlive), 'Last Updated': str(x.LastUpdated)}
+                          'IP': x.IP, 'Status': x.Status, 'LastSeenAlive': str(x.LastSeenAlive), 'Last Updated': str(x.LastUpdated)}
             dict[x.AssetName] = properties
         # print(type(dict))
         #jsr = json.loads(dict)
@@ -242,7 +249,7 @@ class SearchResponse(View):
                 dict = {}
                 for x in items:
                     properties = {'OS': x.OS, 'Hostname': x.Hostname, 'MAC': x.MAC,
-                            'IP': x.IP, 'Status': x.Status,'LastSeenAlive': str(x.LastSeenAlive), 'Last Updated': str(x.LastUpdated)}
+                                  'IP': x.IP, 'Status': x.Status, 'LastSeenAlive': str(x.LastSeenAlive), 'Last Updated': str(x.LastUpdated)}
                     dict[x.AssetName] = properties
                 #jsr = json.loads(dict)
                 return JsonResponse(dict)
@@ -251,7 +258,7 @@ class SearchResponse(View):
                 dict = {}
                 for x in items:
                     properties = {'OS': x.OS, 'Hostname': x.Hostname, 'MAC': x.MAC,
-                            'IP': x.IP, 'Status': x.Status,'LastSeenAlive': str(x.LastSeenAlive), 'Last Updated': str(x.LastUpdated)}
+                                  'IP': x.IP, 'Status': x.Status, 'LastSeenAlive': str(x.LastSeenAlive), 'Last Updated': str(x.LastUpdated)}
                     dict[x.AssetName] = properties
                 #jsr = json.loads(dict)
                 return JsonResponse(dict)
@@ -262,7 +269,7 @@ class SearchResponse(View):
                 if x.AssetName == "":
                     continue
                 properties = {'OS': x.OS, 'Hostname': x.Hostname, 'MAC': x.MAC,
-                            'IP': x.IP, 'Status': x.Status,'LastSeenAlive': str(x.LastSeenAlive), 'Last Updated': str(x.LastUpdated)}
+                              'IP': x.IP, 'Status': x.Status, 'LastSeenAlive': str(x.LastSeenAlive), 'Last Updated': str(x.LastUpdated)}
                 dict[x.AssetName] = properties
             # print(type(dict))
             #jsr = json.loads(dict)
