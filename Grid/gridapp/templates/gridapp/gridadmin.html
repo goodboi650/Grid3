@@ -42,6 +42,14 @@
         else
           document.getElementById("searchBar").placeholder = "Enter AD Domain";
       }
+
+      if(context['error']) {
+        alert("Scan failed");
+      }
+      else {
+        alert("Scan complete!");
+      }
+
     </script>
 
     <br>
