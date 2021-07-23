@@ -15,7 +15,7 @@ urlpatterns = [
         template_name='gridapp/login.html'), name='login'),
     path('logout', auth_views.LogoutView.as_view(
         template_name='gridapp/logout.html'), name='logout'),
-    path('ipscreen', views.ipscreen, name='asset-list'),
+    #path('search', views.ipscreen, name='ip-screen'),
     path('singlescan', views.singlescan, name='singlescan'),
     path('add_asset', views.add_asset, name='add_asset'),
     path('delete_asset', views.delete_asset, name='delete_asset'),
