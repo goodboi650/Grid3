@@ -3,11 +3,9 @@ from gridapp import views
 from django.contrib.auth import views as auth_views
 
 urlpatterns = [
-    path('onerequest', views.SubmitOneRequest.as_view(), name='submit_one_request'),
-    path('allrequest', views.SubmitAllRequest.as_view(), name='submit_all_request'),
-    path('create_response', views.CreateResponse.as_view(), name='create_response'),
-    path('delete', views.DeleteResponse.as_view(), name='delete'),
-    path('search/', views.SearchResponse.as_view(), name='search'),
+    path('scan', views.Scan.as_view(), name='scan_all'),
+    path('addserver', views.AddServer.as_view(), name='add_to_db'),
+    path('searchdb', views.SearchDB.as_view(), name='search'),
 
     path('', views.user, name='user'),
     path('gridadmin', views.gridadmin, name='grid-admin'),

@@ -5,7 +5,7 @@ from django.utils.decorators import method_decorator
 from django.views.decorators.csrf import csrf_exempt
 from django.views import View
 from django.core.files import File
-from gridapp.models import Response
+from gridapp.models import Response, Creds
 from datetime import datetime
 
 import json
@@ -35,215 +35,56 @@ def delete_asset(request):
 
 
 
-def run_item(password, username, server, port, no):
-    command = f'sshpass -p {password} ssh {username}@{server} -p {port} python3 < script{no}.py'
-    print(command)
+def run_item(password, username, server, port):
+    command = f'sshpass -p {password} ssh {username}@{server} -p {port} python3 < ip.py'
     process = subprocess.Popen(
-        f'{command}', shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-
-    d = {}
+            f'{command}', shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
     (out, err) = process.communicate()
+    d = {}
     if process.returncode == 0:
         sout = out.decode("utf-8")
         d = json.loads(sout)
-        d["Asset_Name"] = server
-        d["Status"] = "UP"
-        # print(json.dumps(d))
-        # return d
-    else:
-        d = {'Asset_Name': server, 'IP': '',
-             'MAC': '', 'Hostname': '', 'OS': ''}
-        serr = err.decode("utf-8")
-        index = serr.rfind(":")
-        d['Status'] = serr[index+2:-2]
-        # print(json.dumps(errd))
-        # return errd
-
-    if d['Status'] != 'UP':
-        command = f'sshpass -p {password} ssh {username}@{server} -p {port} python3 < script{no}.py'
-        process = subprocess.Popen(
-            f'{command}', shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-        (out, err) = process.communicate()
-        if process.returncode == 0:
-            sout = out.decode("utf-8")
-            d = json.loads(sout)
-            d['Asset_Name'] = server
-            d['Status'] = "UP"
-            # print(json.dumps(d))
-        else:
-            d = {'Asset_Name': server, 'IP': '',
-                 'MAC': '', 'Hostname': '', 'OS': ''}
-            serr = err.decode("utf-8")
-            index = serr.rfind(":")
-            d['Status'] = serr[index+2:-2]
-            # print(json.dumps(d))
-
-    # print(json.dumps(d))
     return d
-
-    print('\n')
-
-
-@method_decorator(csrf_exempt, name='dispatch')
-class SubmitOneRequest(View):
-    def post(self, request):
-        #If postman
-        data = json.loads(request.body)
-        server = data['server']
-
-        #If front end
-        #server = request.POST.get("server")
-        
-        #username = data['username']
-        #password = data['password']
-        #port = data['port']
-        try:
-            obj = Response.objects.get(AssetName=server)
-            no = 2
-            if not obj.DomainInfo:
-                no = 1
-            dict = run_item(obj.Password, obj.Username, obj.Server, obj.Port, no)
-            # TODO: check if error
-            print(dict)
-            if dict['Status'] == 'UP':
-                #Assetname = dict['Asset_name'],
-                ip = dict['IP']
-                mac = dict['MAC']
-                os = dict['OS']
-                hostname = dict['Hostname']
-                #obj.AssetName = Assetname
-                obj.IP = ip
-                obj.MAC = mac
-                obj.OS = os
-                obj.Hostname = hostname
-                obj.Status = dict['Status']
-                dom = dict['Domain Info']
-                if not obj.DomainInfo:
-                    with open (f'./media/{server}','w') as f:
-                        Dfile = File(f)
-                        Dfile.write(dom)
-                        obj.DomainInfo = Dfile
-                    f.close()
-                obj.LastSeenAlive = datetime.now()
-                obj.LastUpdated = datetime.now()
-                obj.save(update_fields=['IP', 'MAC', 'OS',
-                         'Hostname', 'Status', 'LastUpdated'])
-            else:
-                obj.Status = dict['Status']
-                obj.LastUpdated = datetime.now()
-                obj.save(update_fields=['Status', 'LastUpdated'])
-        except Exception as e:
-            print(e)
-            return HttpResponse("Yellubhai tu galat search karra")
-        
-        return JsonResponse(dict)
+    #d = {"IP":["IP","Hostname","Mac","OS","Status"]}
 
 
 @method_decorator(csrf_exempt, name='dispatch')
-class SubmitAllRequest(View):
+class Scan(View):
     def get(self, request):
-        lines = []
-        count = 1
-        all_items = Response.objects.all()
-        for item in all_items:
-            print(f"Asset {count}\n")
-            if item.Port is None:
-                port = 22
-            else:
-                port = item.Port
-            server = item.Server
-            username = item.Username
-            password = item.Password
-            no = 2
-            if not item.DomainInfo:
-                no = 1
-            #obj = Response.objects.get(AssetName=server,Username=username, Password=password)
-            dict = run_item(password, username, server, port, no)
-            # TODO: check if error
-            print(dict)
-            if dict['Status'] == 'UP':
-                #Assetname = dict['Asset_name'],
-                ip = dict['IP']
-                mac = dict['MAC']
-                os = dict['OS']
-                hostname = dict['Hostname']
-                #obj.AssetName = Assetname
-                item.IP = ip
-                item.MAC = mac
-                item.OS = os
-                item.Hostname = hostname
-                item.Status = dict['Status']
-                item.LastSeenAlive = datetime.now()
-                item.LastUpdated = datetime.now()
-                if not item.DomainInfo:
-                    with open (f'./media/{server}','w') as f:
-                        Dfile = File(f)
-                        Dfile.write(item)
-                        item.DomainInfo = Dfile
-                    f.close()
-                item.save(update_fields=['IP', 'MAC', 'OS',
-                                         'Hostname', 'Status', 'LastUpdated'])
-            else:
-                item.Status = dict['Status']
-                item.LastUpdated = datetime.now()
-                item.save(update_fields=['Status', 'LastUpdated'])
-            count = count+1
-        return HttpResponse("Success")
+        creds = Creds.objects.all()[0]
+        username = creds.Username
+        password = creds.Password
+        server = creds.Server
+        port = creds.Port
+        return run_item(password, username, server , port)
 
 
 @method_decorator(csrf_exempt, name='dispatch')
-class CreateResponse(View):
+class AddServer(View):
     def post(self, request):
-        #data = json.loads(request.body)
-        #server = data['server']
-        #username = data['username']
-        #password = data['password']
-        #port = data['port']
         server = request.POST.get("server")
+        port = request.POST.get("port")
         username = request.POST.get("username")
         password = request.POST.get("password")
-        port = request.POST.get("port")
-
-        try:
-            Response.objects.create(
-                AssetName=server, Server=server, Username=username, Password=password, Port=port)
-            return HttpResponse({"Yelluru Pilega"})
-        except:
-            return HttpResponse({"Muku Pilega"})
-
+        Creds.objects.all().delete()
+        Creds.objects.create(Server = server, Port=port, Username=username, Password=password)
+        
 
 @method_decorator(csrf_exempt, name='dispatch')
-class DeleteResponse(View):
-    def post(self, request):
-        #data = json.loads(request.body)
-        server = request.POST.get("server")
-        Response.objects.filter(AssetName=server).delete()
-        return HttpResponse("Success")
-
-
-@method_decorator(csrf_exempt, name='dispatch')
-class SearchResponse(View):
+class SearchDB(View):
     def get(self,request):
-        return render(request,'user.html',{'flag':False})
-        """item = Response.objects.all()
+        item = Response.objects.all()
         dict = {}
         for x in item:
             if x.AssetName == "":
                 continue
-            properties = {'OS': x.OS, 'Hostname': x.Hostname, 'MAC': x.MAC,
-                            'IP': x.IP, 'Status': x.Status,'LastSeenAlive': str(x.LastSeenAlive), 'Last Updated': str(x.LastUpdated)}
+            properties = [x.OS, x.Hostname, x.MACx.IP, x.Status,str(x.LastSeenAlive),str(x.LastUpdated)]
             dict[x.AssetName] = properties
-        # print(type(dict))
-        #jsr = json.loads(dict)
-        # print(type(dict))
-        return JsonResponse(dict)"""
+        return render(request,'ipscreen.html',{'data':dict})
 
     def post(self, request):
         try:
-            #print("Hello bocha")
             data = json.loads(request.body)
-
-            #print("mukund here")
             if 'asset_name' in data:
                 items = Response.objects.filter(AssetName=data['asset_name'])
             elif 'OS' in data:
