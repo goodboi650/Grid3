@@ -69,13 +69,13 @@ class Scan(View):
         if(len(d) == 0):
             return render(request, page, context={'emptyCred': False, 'scanCall': True, 'emptyDB': True})
 
-        for key, value in d:
-            obj = Response.object.query(IP=key).get()
+        print(d)
+        for key in d:
+            value = d[key]
+            #print(key)
             now = datetime.now()
-            if not obj:
-                Response.object.create(Hostname=value["Hostname"], MAC=value["MAC"],
-                                       Status=value["Status"], OS=value["OS"], LastSeenAlive=now, LastUpdated=now)
-            else:
+            try:
+                obj = Response.objects.get(IP=key)
                 obj.Hostname = value["Hostname"]
                 obj.MAC = value["MAC"]
                 obj.OS = value["OS"]
@@ -86,13 +86,17 @@ class Scan(View):
                 obj.ADDomain = value["ADDomain"]
                 obj.save(update_fields=[
                     "Hostname", "OS", "MAC", "Status", "LastSeenAlive", "LastUpdated", "Workgroup", "ADDomain"])
-        all_items = Response.object.all()
+            except:
+                Response.objects.create(IP=value["IP"],Hostname=value["Hostname"], MAC=value["MAC"],
+                                       Status=value["Status"], OS=value["OS"], LastSeenAlive=now, LastUpdated=now, ADDomain=value["ADDomain"],Workgroup=value["Workgroup"])
+                
+        all_items = Response.objects.all()
         for x in all_items:
             if x.IP not in d:
                 obj.Status = "Down"
                 obj.LastUpdated = now
                 obj.save(update_fields=["Status", "LastUpdated"])
-        return render(request, page, context={'scanError': False, 'scanCall': True})
+        return render(request, page, context={'emptyCred': False, 'scanCall': True, 'emptyDB': False})
 
 
 @method_decorator(csrf_exempt, name='dispatch')
@@ -136,17 +140,16 @@ class SearchDB(View):
         try:
             parameter = request.POST.get('parameter')
             value = request.POST.get('filter')
-
             page = 'gridapp/user.html'
             if(request.user.is_authenticated):
                 page = 'gridapp/gridadmin.html'
 
             if(parameter == 'os'):
-                items = Response.objects.filter(OS=value)
+                items = Response.objects.filter(OS__iexact=value)
             elif parameter == 'workgroup':
-                items = Response.objects.filter(Workgroup=value)
+                items = Response.objects.filter(Workgroup__iexact=value)
             else:
-                items = Response.objects.filter(ADDomain=value)
+                items = Response.objects.filter(ADDomain__iexact=value)
             dict = {}
             i = 1
             for x in items:
@@ -158,4 +161,4 @@ class SearchDB(View):
             return render(request, page, {'searchResults': bool(len(dict)), 'data': dict, 'searchCall': True})
         except Exception as e:
             print(e)
-            return HttpResponse("mukundpilega")
+            return HttpResponse("Yelluru pilega")
