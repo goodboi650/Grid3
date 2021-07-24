@@ -70,9 +70,11 @@ class Scan(View):
             return render(request, page, context={'emptyCred': False, 'scanCall': True, 'emptyDB': True})
 
         print(d)
+        seen=[]
         for key in d:
             value = d[key]
             #print(key)
+            seen.append(key)
             now = datetime.now()
             try:
                 obj = Response.objects.get(IP=key)
@@ -92,7 +94,7 @@ class Scan(View):
                 
         all_items = Response.objects.all()
         for x in all_items:
-            if x.IP not in d:
+            if x.IP not in seen:
                 obj.Status = "Down"
                 obj.LastUpdated = now
                 obj.save(update_fields=["Status", "LastUpdated"])
