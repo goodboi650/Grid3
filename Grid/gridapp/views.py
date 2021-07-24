@@ -58,13 +58,17 @@ class Scan(View):
         if(request.user.is_authenticated):
             page = 'gridapp/gridadmin.html'
         if(len(creds) == 0):
-            return render(request, page, context={'error': True, 'data': {}})
+            return render(request, page, context={'emptyCred': True, 'scanCall': True})
         creds = creds[0]
         username = creds.Username
         password = creds.Password
         server = creds.Server
         port = creds.Port
         d = run_item(password, username, server, port)
+
+        if(len(d) == 0):
+            return render(request, page, context={'emptyCred': False, 'scanCall': True, 'emptyDB': True})
+
         for key, value in d:
             obj = Response.object.query(IP=key).get()
             now = datetime.now()
@@ -78,28 +82,40 @@ class Scan(View):
                 obj.Status = value["Status"]
                 obj.LastSeenAlive = now
                 obj.LastUpdated = now
+                obj.Workgroup = value["Workgroup"]
+                obj.ADDomain = value["ADDomain"]
                 obj.save(update_fields=[
-                    "Hostname", "OS", "MAC", "Status", "LastSeenAlive", "LastUpdated"])
+                    "Hostname", "OS", "MAC", "Status", "LastSeenAlive", "LastUpdated", "Workgroup", "ADDomain"])
         all_items = Response.object.all()
         for x in all_items:
             if x.IP not in d:
                 obj.Status = "Down"
                 obj.LastUpdated = now
                 obj.save(update_fields=["Status", "LastUpdated"])
-        return render(request, page, context={'error': False, 'data': d})
+        return render(request, page, context={'scanError': False, 'scanCall': True})
 
 
 @method_decorator(csrf_exempt, name='dispatch')
 class AddServer(View):
     def post(self, request):
+        page = 'gridapp/user.html'
+        if(request.user.is_authenticated):
+            page = 'gridapp/gridadmin.html'
         server = request.POST.get("server")
         port = request.POST.get("port")
+        if port == '':
+            port = 22
+        try:
+            port = int(port)
+        except:
+            return render(request, 'gridapp/add_asset.html', context={'portNAN': True})
         username = request.POST.get("username")
         password = request.POST.get("password")
         Creds.objects.all().delete()
         Response.objects.all().delete()
         Creds.objects.create(Server=server, Port=port,
                              Username=username, Password=password)
+        return render(request, page, context={'updateCall': True})
 
 
 @method_decorator(csrf_exempt, name='dispatch')
@@ -107,41 +123,39 @@ class SearchDB(View):
     def get(self, request):
         item = Response.objects.all()
         dict = {}
+        i = 1
         for x in item:
-            if x.AssetName == "":
-                continue
-            properties = [x.OS, x.Hostname, x.MACx.IP, x.Status,
-                          str(x.LastSeenAlive), str(x.LastUpdated)]
-            dict[x.AssetName] = properties
-        return render(request, 'ipscreen.html', {'data': dict})
+            properties = [x.IP, x.Hostname, x.MAC, x.OS, x.Status, x.Workgroup, x.ADDomain, str(
+                x.LastSeenAlive), str(x.LastUpdated)]
+            dict[i] = properties
+            i += 1
+        return render(request, 'gridapp/ipscreen.html', {'existsDB': bool(len(dict)), 'data': dict})
 
     def post(self, request):
+        # Search based on input parameter
         try:
-            data = json.loads(request.body)
-            if 'asset_name' in data:
-                items = Response.objects.filter(AssetName=data['asset_name'])
-            elif 'OS' in data:
-                items = Response.objects.filter(OS=data['OS'])
+            parameter = request.POST.get('parameter')
+            value = request.POST.get('filter')
+
+            page = 'gridapp/user.html'
+            if(request.user.is_authenticated):
+                page = 'gridapp/gridadmin.html'
+
+            if(parameter == 'os'):
+                items = Response.objects.filter(OS=value)
+            elif parameter == 'workgroup':
+                items = Response.objects.filter(Workgroup=value)
+            else:
+                items = Response.objects.filter(ADDomain=value)
             dict = {}
+            i = 1
             for x in items:
-                # properties = {'OS': x.OS, 'Hostname': x.Hostname, 'MAC': x.MAC,
-                # 'IP': x.IP, 'Status': x.Status,'LastSeenAlive': str(x.LastSeenAlive), 'Last Updated': str(x.LastUpdated)}
-                properties = [x.OS, x.Hostname, x.MACx.IP, x.Status, str(
+                properties = [x.IP, x.Hostname, x.MAC, x.OS, x.Status, x.Workgroup, x.ADDomain, str(
                     x.LastSeenAlive), str(x.LastUpdated)]
-                dict[x.AssetName] = properties
-            #jsr = json.loads(dict)
-            return render(request, 'user.html', {'flag': True, 'data': dict, 'error': False})
-            # elif AD domain
-        except:
-            item = Response.objects.all()
-            dict = {}
-            for x in item:
-                if x.AssetName == "":
-                    continue
-                properties = [x.OS, x.Hostname, x.MACx.IP, x.Status, str(
-                    x.LastSeenAlive), str(x.LastUpdated)]
-                dict[x.AssetName] = properties
-            # print(type(dict))
-            #jsr = json.loads(dict)
-            # print(type(dict))
-            return render(request, 'user.html', {'flag': True, 'error': True})
+                dict[i] = properties
+                i += 1
+            print(len(dict))
+            return render(request, page, {'searchResults': bool(len(dict)), 'data': dict, 'searchCall': True})
+        except Exception as e:
+            print(e)
+            return HttpResponse("mukundpilega")
