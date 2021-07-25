@@ -50,18 +50,25 @@ def run_item(password, username, server, port):
             lala = True  #MAC '''
 
     #process2 = subprocess.run(f'{command2}',shell=True,stdout=subprocess.PIPE,stderr=subprocess.PIPE)
-    try:
-        command = f'sshpass -p {password} ssh -o StrictHostKeyChecking=no {username}@{server} -p {port} sudo python3 < ip.py'
-    except:
-        command = f'sshpass -p {password} ssh -o StrictHostKeyChecking=no {username}@{server} -p {port} python < ip.py'
+    command = f'sshpass -p {password} ssh -o StrictHostKeyChecking=no {username}@{server} -p {port}  python3 < ip.py'
+    command2 = f'sshpass -p {password} ssh -o StrictHostKeyChecking=no {username}@{server} -p {port} python < ip.py'
 
-    process = subprocess.Popen(
-        f'{command}', shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    
+    process = subprocess.Popen(f'{command}', shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
     (out, err) = process.communicate()
     d = {}
     if process.returncode == 0:
         sout = out.decode("utf-8")
         d = json.loads(sout)
+
+    if len(d)==0 :
+        process = subprocess.Popen(f'{command2}', shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        (out, err) = process.communicate()
+        d = {}
+        if process.returncode == 0:
+            sout = out.decode("utf-8")
+            d = json.loads(sout)
+
     return d
     #d = {"IP":["IP","Hostname","Mac","OS","Status"]}
 
