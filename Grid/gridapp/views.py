@@ -37,6 +37,8 @@ def delete_asset(request):
     return render(request, 'gridapp/delete_asset.html')
 
 #lala = False
+
+
 def run_item(password, username, server, port):
     '''global lala
     if lala is False:
@@ -49,10 +51,9 @@ def run_item(password, username, server, port):
 
     #process2 = subprocess.run(f'{command2}',shell=True,stdout=subprocess.PIPE,stderr=subprocess.PIPE)
     try:
-        command = f'sshpass -p {password} ssh -o StrictHostKeyChecking=no {username}@{server} -p {port} python3 < ip.py'
+        command = f'sshpass -p {password} ssh -o StrictHostKeyChecking=no {username}@{server} -p {port} sudo python3 < ip.py'
     except:
         command = f'sshpass -p {password} ssh -o StrictHostKeyChecking=no {username}@{server} -p {port} python < ip.py'
-
 
     process = subprocess.Popen(
         f'{command}', shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
@@ -84,11 +85,11 @@ class Scan(View):
         if(len(d) == 0):
             return render(request, page, context={'emptyCred': False, 'scanCall': True, 'emptyDB': True})
 
-        #print(d)
-        seen=[]
+        # print(d)
+        seen = []
         for key in d:
             value = d[key]
-            #print(key)
+            # print(key)
             seen.append(key)
             now = datetime.now()
             try:
@@ -104,15 +105,15 @@ class Scan(View):
                 obj.save(update_fields=[
                     "Hostname", "OS", "MAC", "Status", "LastSeenAlive", "LastUpdated", "Workgroup", "ADDomain"])
             except:
-                Response.objects.create(IP=value["IP"],Hostname=value["Hostname"], MAC=value["MAC"],
-                                       Status=value["Status"], OS=value["OS"], LastSeenAlive=now, LastUpdated=now, ADDomain=value["ADDomain"],Workgroup=value["Workgroup"])
-                
+                Response.objects.create(IP=value["IP"], Hostname=value["Hostname"], MAC=value["MAC"],
+                                        Status=value["Status"], OS=value["OS"], LastSeenAlive=now, LastUpdated=now, ADDomain=value["ADDomain"], Workgroup=value["Workgroup"])
+
         all_items = Response.objects.all()
         for x in all_items:
-            #print(seen)
-            #print(x.IP)
+            # print(seen)
+            # print(x.IP)
             if x.IP not in seen:
-                #print(x.IP,"    Not seen   ") 
+                #print(x.IP,"    Not seen   ")
                 #print("aaagya mai idhar")
                 x.Status = "down"
                 x.LastUpdated = now

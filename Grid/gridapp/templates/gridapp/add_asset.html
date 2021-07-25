@@ -1,7 +1,7 @@
 {% extends "gridapp/base.html" %}
 
 {% block title %}
-    Add an Asset
+    Update Server Credentials
 {% endblock title %}
 
 {% block nav %}  
@@ -25,8 +25,8 @@
 <form action='/add_to_db' method='POST'>
     <h1>Update Server Credentials</h1>
     <div class="form-group">
-      <label for="formGroupExampleInput">Server Name</label>
-      <input required type="text" class="form-control" id="serverNameInput" placeholder="Enter Server Name" name="server">
+      <label for="formGroupExampleInput">Server Name/IP</label>
+      <input required type="text" class="form-control" id="serverNameInput" placeholder="Enter Server Name or IP" name="server">
     </div>
     <div class="form-group">
       <label for="formGroupExampleInput2">Username</label>
