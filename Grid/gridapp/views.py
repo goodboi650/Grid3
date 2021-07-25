@@ -36,9 +36,24 @@ def add_asset(request):
 def delete_asset(request):
     return render(request, 'gridapp/delete_asset.html')
 
-
+#lala = False
 def run_item(password, username, server, port):
-    command = f'sshpass -p {password} ssh {username}@{server} -p {port} python3 < ip.py'
+    '''global lala
+    if lala is False:
+        try:
+            command2 = f'sshpass -p {password} ssh -o StrictHostKeyChecking=no {username}@{server} -p {port} "sudo apt-get -y install nmap"'
+            lala = True  #Linux
+        except:
+            command2 = f'sshpass -p {password} ssh -o StrictHostKeyChecking=no {username}@{server} -p {port} "brew install nmap"'
+            lala = True  #MAC '''
+
+    #process2 = subprocess.run(f'{command2}',shell=True,stdout=subprocess.PIPE,stderr=subprocess.PIPE)
+    try:
+        command = f'sshpass -p {password} ssh -o StrictHostKeyChecking=no {username}@{server} -p {port} python3 < ip.py'
+    except:
+        command = f'sshpass -p {password} ssh -o StrictHostKeyChecking=no {username}@{server} -p {port} python < ip.py'
+
+
     process = subprocess.Popen(
         f'{command}', shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
     (out, err) = process.communicate()
@@ -69,7 +84,7 @@ class Scan(View):
         if(len(d) == 0):
             return render(request, page, context={'emptyCred': False, 'scanCall': True, 'emptyDB': True})
 
-        print(d)
+        #print(d)
         seen=[]
         for key in d:
             value = d[key]
@@ -94,10 +109,14 @@ class Scan(View):
                 
         all_items = Response.objects.all()
         for x in all_items:
+            #print(seen)
+            #print(x.IP)
             if x.IP not in seen:
-                obj.Status = "Down"
-                obj.LastUpdated = now
-                obj.save(update_fields=["Status", "LastUpdated"])
+                #print(x.IP,"    Not seen   ") 
+                #print("aaagya mai idhar")
+                x.Status = "down"
+                x.LastUpdated = now
+                x.save(update_fields=["Status", "LastUpdated"])
         return render(request, page, context={'emptyCred': False, 'scanCall': True, 'emptyDB': False})
 
 
@@ -121,6 +140,8 @@ class AddServer(View):
         Response.objects.all().delete()
         Creds.objects.create(Server=server, Port=port,
                              Username=username, Password=password)
+        #global lala
+        #lala = False
         return render(request, page, context={'updateCall': True})
 
 
@@ -163,4 +184,4 @@ class SearchDB(View):
             return render(request, page, {'searchResults': bool(len(dict)), 'data': dict, 'searchCall': True})
         except Exception as e:
             print(e)
-            return HttpResponse("Yelluru pilega")
+            return HttpResponse("Some error occured.")
