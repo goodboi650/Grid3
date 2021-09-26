@@ -36,46 +36,42 @@ def add_asset(request):
 def delete_asset(request):
     return render(request, 'gridapp/delete_asset.html')
 
-#lala = False
 
 
 def run_item(password, username, server, port):
-    '''global lala
-    if lala is False:
-        try:
-            command2 = f'sshpass -p {password} ssh -o StrictHostKeyChecking=no {username}@{server} -p {port} "sudo apt-get -y install nmap"'
-            lala = True  #Linux
-        except:
-            command2 = f'sshpass -p {password} ssh -o StrictHostKeyChecking=no {username}@{server} -p {port} "brew install nmap"'
-            lala = True  #MAC '''
-
-    #process2 = subprocess.run(f'{command2}',shell=True,stdout=subprocess.PIPE,stderr=subprocess.PIPE)
+    """
+    Runs the script ip.py and takes the output from that as
+    input and creates a dictionary of required data
+    """
     command = f'sshpass -p {password} ssh -o StrictHostKeyChecking=no {username}@{server} -p {port}  python3 < ip.py'
     command2 = f'sshpass -p {password} ssh -o StrictHostKeyChecking=no {username}@{server} -p {port} python < ip.py'
 
     
     process = subprocess.Popen(f'{command}', shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
     (out, err) = process.communicate()
-    d = {}
+    data = {}
     if process.returncode == 0:
         sout = out.decode("utf-8")
-        d = json.loads(sout)
+        data = json.loads(sout)
 
     if len(d)==0 :
         process = subprocess.Popen(f'{command2}', shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
         (out, err) = process.communicate()
-        d = {}
+        data = {}
         if process.returncode == 0:
             sout = out.decode("utf-8")
-            d = json.loads(sout)
+            data = json.loads(sout)
 
-    return d
-    #d = {"IP":["IP","Hostname","Mac","OS","Status"]}
+    return data
 
 
 @method_decorator(csrf_exempt, name='dispatch')
 class Scan(View):
+    #Runs a scan on demand
     def get(self, request):
+        """
+            Scans the remote network and finds all the hosts present on the network
+        """
         creds = Creds.objects.all()
         page = 'gridapp/user.html'
         if(request.user.is_authenticated):
@@ -87,29 +83,26 @@ class Scan(View):
         password = creds.Password
         server = creds.Server
         port = creds.Port
-        d = run_item(password, username, server, port)
+        data = run_item(password, username, server, port)
 
-        if(len(d) == 0):
+        if(len(data) == 0):
             return render(request, page, context={'emptyCred': False, 'scanCall': True, 'emptyDB': True})
-
-        # print(d)
         seen = []
-        for key in d:
-            value = d[key]
-            # print(key)
+        for key in data:
+            value = data[key]
             seen.append(key)
             now = datetime.now()
             try:
-                obj = Response.objects.get(IP=key)
-                obj.Hostname = value["Hostname"]
-                obj.MAC = value["MAC"]
-                obj.OS = value["OS"]
-                obj.Status = value["Status"]
-                obj.LastSeenAlive = now
-                obj.LastUpdated = now
-                obj.Workgroup = value["Workgroup"]
-                obj.ADDomain = value["ADDomain"]
-                obj.save(update_fields=[
+                temporaryResponse = Response.objects.get(IP=key)
+                temporaryResponse.Hostname = value["Hostname"]
+                temporaryResponse.MAC = value["MAC"]
+                temporaryResponse.OS = value["OS"]
+                temporaryResponse.Status = value["Status"]
+                temporaryResponse.LastSeenAlive = now
+                temporaryResponse.LastUpdated = now
+                temporaryResponse.Workgroup = value["Workgroup"]
+                temporaryResponse.ADDomain = value["ADDomain"]
+                temporaryResponse.save(update_fields=[
                     "Hostname", "OS", "MAC", "Status", "LastSeenAlive", "LastUpdated", "Workgroup", "ADDomain"])
             except:
                 Response.objects.create(IP=value["IP"], Hostname=value["Hostname"], MAC=value["MAC"],
@@ -117,11 +110,7 @@ class Scan(View):
 
         all_items = Response.objects.all()
         for x in all_items:
-            # print(seen)
-            # print(x.IP)
             if x.IP not in seen:
-                #print(x.IP,"    Not seen   ")
-                #print("aaagya mai idhar")
                 x.Status = "down"
                 x.LastUpdated = now
                 x.save(update_fields=["Status", "LastUpdated"])
@@ -130,7 +119,11 @@ class Scan(View):
 
 @method_decorator(csrf_exempt, name='dispatch')
 class AddServer(View):
+    #Adds an entry into the credentials table
     def post(self, request):
+        """
+            Allows Admin user to add/update credentials of a remote network into the credentials database
+        """
         page = 'gridapp/user.html'
         if(request.user.is_authenticated):
             page = 'gridapp/gridadmin.html'
@@ -148,48 +141,53 @@ class AddServer(View):
         Response.objects.all().delete()
         Creds.objects.create(Server=server, Port=port,
                              Username=username, Password=password)
-        #global lala
-        #lala = False
         return render(request, page, context={'updateCall': True})
 
 
 @method_decorator(csrf_exempt, name='dispatch')
 class SearchDB(View):
     def get(self, request):
+        """
+            Displays data after the previous scan.
+            Displays entire database.
+        """
+        #Displays the entire database
         item = Response.objects.all()
-        dict = {}
+        data = {}
         i = 1
         for x in item:
             properties = [x.IP, x.Hostname, x.MAC, x.OS, x.Status, x.Workgroup, x.ADDomain, str(
                 x.LastSeenAlive), str(x.LastUpdated)]
-            dict[i] = properties
+            data[i] = properties
             i += 1
-        return render(request, 'gridapp/ipscreen.html', {'existsDB': bool(len(dict)), 'data': dict})
+        return render(request, 'gridapp/ipscreen.html', {'existsDB': bool(len(data)), 'data': data})
 
     def post(self, request):
-        # Search based on input parameter
+        """
+            Displays a part of the database corresponding to the user query
+        """
+        # Search database based on user input parameter
         try:
             parameter = request.POST.get('parameter')
             value = request.POST.get('filter')
             page = 'gridapp/user.html'
             if(request.user.is_authenticated):
                 page = 'gridapp/gridadmin.html'
-
+            #Find the parameter based on which the search is required to be performed
             if(parameter == 'os'):
                 items = Response.objects.filter(OS__iexact=value)
             elif parameter == 'workgroup':
                 items = Response.objects.filter(Workgroup__iexact=value)
             else:
                 items = Response.objects.filter(ADDomain__iexact=value)
-            dict = {}
-            i = 1
-            for x in items:
-                properties = [x.IP, x.Hostname, x.MAC, x.OS, x.Status, x.Workgroup, x.ADDomain, str(
-                    x.LastSeenAlive), str(x.LastUpdated)]
-                dict[i] = properties
-                i += 1
-            print(len(dict))
-            return render(request, page, {'searchResults': bool(len(dict)), 'data': dict, 'searchCall': True})
+            data = {}
+            index = 1
+            #Iterate over the database to find the entries corresponding to the search.
+            for item in items:
+                properties = [item.IP, item.Hostname, item.MAC, item.OS, item.Status, item.Workgroup, item.ADDomain, str(
+                    item.LastSeenAlive), str(item.LastUpdated)]
+                data[index] = properties
+                index += 1
+            return render(request, page, {'searchResults': bool(len(dict)), 'data': data, 'searchCall': True})
         except Exception as e:
-            print(e)
             return HttpResponse("Some error occured.")
