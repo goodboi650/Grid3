@@ -54,7 +54,7 @@ def run_item(password, username, server, port):
         sout = out.decode("utf-8")
         data = json.loads(sout)
 
-    if len(d)==0 :
+    if len(data)==0 :
         process = subprocess.Popen(f'{command2}', shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
         (out, err) = process.communicate()
         data = {}
@@ -188,6 +188,6 @@ class SearchDB(View):
                     item.LastSeenAlive), str(item.LastUpdated)]
                 data[index] = properties
                 index += 1
-            return render(request, page, {'searchResults': bool(len(dict)), 'data': data, 'searchCall': True})
+            return render(request, page, {'searchResults': bool(len(data)), 'data': data, 'searchCall': True})
         except Exception as e:
             return HttpResponse("Some error occured.")
